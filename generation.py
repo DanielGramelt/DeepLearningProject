@@ -35,8 +35,8 @@ def process_file(filename, dir, output_dir):
     multi_otsu(output_path, image)
 
 def main():
-    dir = '../Dataset/finalData/rock'
-    output_dir = '../Dataset/multi_otsu/rock/'
+    dir = '../Dataset/validation_set/scissors'
+    output_dir = '../Dataset/validation_otsu/scissors'
     filenames = [filename for filename in os.listdir(dir) if filename.endswith(".png")]
 
     with multiprocessing.Pool(processes=multiprocessing.cpu_count()) as pool:
