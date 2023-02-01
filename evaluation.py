@@ -207,7 +207,7 @@ def get_matrix_values(truth, prediction):
 
     return matrix, [tp_rock,tp_paper,tp_scissors],[tn_rock,tn_paper,tn_scissors],[fp_rock,fp_paper,fp_scissors],[fn_rock,fn_paper,fn_scissors]
 
-IMAGE_SHAPE = (60,60)
+IMAGE_SHAPE = (200,200)
 BATCH_SIZE = 32
 TEST_DATA_PATH = '../Dataset/testing_otsu'
 if __name__ == '__main__':
@@ -217,7 +217,7 @@ if __name__ == '__main__':
     num_scissors = len([f for f in os.listdir(TEST_DATA_PATH + '/scissors') if
                      os.path.isfile(os.path.join(TEST_DATA_PATH + '/scissors', f))])
     truth = np.concatenate([np.full((num_paper),0),np.full((num_rock),1),np.full((num_scissors-1),2)])
-    models = get_models('models/otsu_models60x60')
+    models = get_models('models/otsu_models200x200')
     predictions = []
     mcc_rock = []
     mcc_paper = []
