@@ -107,7 +107,7 @@ def train_model(train_ds, val_ds):
 
 
 BATCH_SIZE = 32
-EPOCHS = 15
+EPOCHS = 40
 HEIGHT = 60
 WIDTH = 60
 IMAGE_SHAPE = (HEIGHT, WIDTH)
