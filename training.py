@@ -9,13 +9,13 @@ import keras
 import numpy as np
 from PIL import Image
 
-def load_images(train_path, val_path):
+def load_images(train_path, val_path, seed):
 
     train_ds = tf.keras.utils.image_dataset_from_directory(
         train_path,
         validation_split=None,
         subset=None,
-        seed=SEED,
+        seed=seed,
         shuffle=True,
         color_mode='grayscale',
         image_size=IMAGE_SHAPE,
@@ -25,7 +25,7 @@ def load_images(train_path, val_path):
         val_path,
         validation_split=None,
         subset=None,
-        seed=SEED,
+        seed=seed,
         shuffle=True,
         color_mode='grayscale',
         image_size=IMAGE_SHAPE,
@@ -111,12 +111,12 @@ EPOCHS = 15
 HEIGHT = 60
 WIDTH = 60
 IMAGE_SHAPE = (HEIGHT, WIDTH)
-SEED = 42
 
 def train_and_save_model(seed):
+
     random.seed(seed)
     np.random.seed(seed)
-    train, val = load_images('../Dataset/multi_otsu', '../Dataset/validation_otsu')
+    train, val = load_images('../Dataset/multi_otsu', '../Dataset/validation_otsu', seed)
     train_model(train, val)
 
 if __name__ == '__main__':
