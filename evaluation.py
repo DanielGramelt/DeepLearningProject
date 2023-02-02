@@ -32,6 +32,16 @@ def predict_images(model, image_path):
     return tf.argmax(predictions, axis=1)
 
 
+def predict_ensemble(ensemble_indexes, predictions, weights):
+    pred = []
+    for i in range(len(predictions[0])):
+        weighted_votes = np.zeros(np.max(predictions) + 1)
+        for j, instrument in enumerate(ensemble_indexes):
+            instrument_prediction = predictions[instrument][i]
+            weighted_votes[instrument_prediction] += weights[j]
+        pred.append(np.argmax(weighted_votes))
+    return pred
+
 def plotMetrics(truth, pred):
     true_rock = truth.copy()
     true_paper = truth.copy()
@@ -179,6 +189,15 @@ def get_best_model(mcc_total,accuracy_total,f1_total):
     print("the best f1 is: " + str(max_f1_value) + " on model_" + str(max_f1_index + 1) + ".h5")
     return max_mcc_index
 
+def get_best_ensemble(mcc_total):
+    sorted = mcc_total.copy()
+    sorted.sort()
+    max_mcc = sorted[-5:]
+    ensemble_indexes = []
+    for value in max_mcc:
+        ensemble_indexes.append(mcc_total.index(value))
+    return ensemble_indexes
+
 def get_matrix_values(truth, prediction):
     matrix = confusion_matrix(y_true=truth, y_pred=prediction)
 
@@ -207,17 +226,15 @@ def get_matrix_values(truth, prediction):
 
     return matrix, [tp_rock,tp_paper,tp_scissors],[tn_rock,tn_paper,tn_scissors],[fp_rock,fp_paper,fp_scissors],[fn_rock,fn_paper,fn_scissors]
 
-IMAGE_SHAPE = (200,200)
-BATCH_SIZE = 32
-TEST_DATA_PATH = '../Dataset/testing_otsu'
-if __name__ == '__main__':
+
+def calculate_best_model():
     num_paper = len([f for f in os.listdir(TEST_DATA_PATH+'/paper') if os.path.isfile(os.path.join(TEST_DATA_PATH+'/paper', f))])
     num_rock = len([f for f in os.listdir(TEST_DATA_PATH + '/rock') if
                      os.path.isfile(os.path.join(TEST_DATA_PATH + '/rock', f))])
     num_scissors = len([f for f in os.listdir(TEST_DATA_PATH + '/scissors') if
                      os.path.isfile(os.path.join(TEST_DATA_PATH + '/scissors', f))])
     truth = np.concatenate([np.full((num_paper),0),np.full((num_rock),1),np.full((num_scissors-1),2)])
-    models = get_models('models/otsu_models200x200')
+    models = get_models('models/otsu_models60x60')
     predictions = []
     mcc_rock = []
     mcc_paper = []
@@ -264,3 +281,27 @@ if __name__ == '__main__':
 
     best_index = get_best_model(mcc_total, accuracy_total, f1_total)
     plotMetrics(truth, predictions[best_index].numpy())
+
+    best_ensemble = get_best_ensemble(mcc_total)
+    total = 0
+    weights = []
+    for instrument in best_ensemble:
+        total += mcc_total[instrument]
+    for i in range(len(best_ensemble)):
+        weights.append(mcc_total[i]/total)
+    ensemble_prediction = predict_ensemble(best_ensemble, predictions, weights)
+    plotMetrics(truth, ensemble_prediction)
+    matrix, tp, tn, fp, fn = get_matrix_values(truth, ensemble_prediction)
+    mcc_rock_ensemble =calculate_mcc(tp=tp[0], tn=tn[0], fp=fp[0], fn=fn[0])
+    mcc_paper_ensemble = calculate_mcc(tp=tp[1], tn=tn[1], fp=fp[1], fn=fn[1])
+    mcc_scissors_ensemble = calculate_mcc(tp=tp[2], tn=tn[2], fp=fp[2], fn=fn[2])
+    mcc_total_ensemble =(mcc_rock_ensemble + mcc_paper_ensemble + mcc_scissors_ensemble) / 3
+    print("MCC ensemble: "+str(mcc_total_ensemble))
+
+
+
+IMAGE_SHAPE = (60, 60)
+BATCH_SIZE = 32
+TEST_DATA_PATH = '../Dataset/testing_otsu'
+
+calculate_best_model()
